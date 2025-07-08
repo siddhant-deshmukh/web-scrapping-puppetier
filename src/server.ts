@@ -26,7 +26,7 @@ app.post('/', async (req: Request, res: Response) => {
       res.status(400).json({ msg: 'Invalid fields send in scan parameter' })
       return;
     }
-    const urls = parseUrlDetails(scan);
+    let urls = parseUrlDetails(scan);
     if (!urls) {
       res.status(400).json({ msg: 'Invalid fields send in scan parameter' })
       return;
@@ -36,7 +36,6 @@ app.post('/', async (req: Request, res: Response) => {
       return;
     }
 
-    await processUrls(urls.map((ele)=> ele.url));
 
     if (typeof scan == 'string' && urls[0].invalid) {
       const googleSearchResults = await performGoogleSearch(scan);
@@ -44,11 +43,14 @@ app.post('/', async (req: Request, res: Response) => {
         res.status(500).json({msg: 'Unable to search on Search Engine'});
         return;
       }
-      res.json({ scan: parseUrlDetails(googleSearchResults.map((ele)=> ele.link)) });
-    } else {
-      res.json({ scan: urls });
+      urls = parseUrlDetails(googleSearchResults.map((ele)=> ele.link));
     }
-
+    if(urls) {
+      const extracted_data = await processUrls(urls.map((ele)=> ele.url));
+      res.status(200).json({ extracted_data })
+      return;
+    }
+    throw 'Something went wrong';
   } catch (err ){
     res.status(500).json({ msg: 'Something went wrong' });
   }

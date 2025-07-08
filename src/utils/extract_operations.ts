@@ -6,7 +6,7 @@ export async function extractCompanyAddress(page: Page): Promise<string[]> {
     const addressKeywords = ['tower', 'floor', 'building', 'office', 'address', 'street', 'road', 'avenue', 'suite'];
     const addressSet = new Set<string>();
 
-  
+
     const addressSelectors = [
       '[class*="address"]',
       '[class*="office"]',
@@ -21,29 +21,29 @@ export async function extractCompanyAddress(page: Page): Promise<string[]> {
       const elements = document.querySelectorAll(selector);
       elements.forEach(el => {
         const text = el.textContent?.trim();
-        if (text && text.length > 20 && addressKeywords.some(keyword => 
+        if (text && text.length > 20 && addressKeywords.some(keyword =>
           text.toLowerCase().includes(keyword))) {
           addressSet.add(text);
         }
       });
     });
 
-  
+
     const allElements = document.querySelectorAll('*');
     allElements.forEach(el => {
       const text = el.textContent?.trim();
       if (text) {
-      
+
         if (/\b(office|address)\s*:/i.test(text)) {
-        
+
           const match = text.match(/\b(?:office|address)\s*:\s*(.+)/i);
           if (match && match[1].length > 15) {
             addressSet.add(match[1].trim());
           }
         }
-        
-      
-        const keywordMatches = addressKeywords.filter(keyword => 
+
+
+        const keywordMatches = addressKeywords.filter(keyword =>
           text.toLowerCase().includes(keyword)).length;
         if (keywordMatches >= 2 && text.length > 30) {
           addressSet.add(text);
@@ -51,7 +51,7 @@ export async function extractCompanyAddress(page: Page): Promise<string[]> {
       }
     });
 
-  
+
     const addressPatterns = [
       /\b\d{5,6}\b.*\b(india|usa|uk|canada|australia)\b/i,
       /\b(maharashtra|gujarat|karnataka|delhi|bangalore|mumbai|pune)\b/i,
@@ -88,17 +88,17 @@ export async function extractSocialMediaUrls(page: Page) {
     };
 
     const result: any = {};
-    
-  
+
+
     const links = document.querySelectorAll('a[href]');
-    
+
     links.forEach(link => {
       const href = link.getAttribute('href');
       if (!href) return;
-      
+
       const url = href.startsWith('http') ? href : `https://${href}`;
-      
-    
+
+
       Object.entries(socialPlatforms).forEach(([platform, domains]) => {
         if (!result[platform] && domains.some(domain => url.includes(domain))) {
           try {
@@ -107,7 +107,7 @@ export async function extractSocialMediaUrls(page: Page) {
               result[platform] = url;
             }
           } catch (e) {
-          
+
           }
         }
       });
@@ -122,7 +122,7 @@ export async function extractSocialMediaUrls(page: Page) {
 export async function extractEmails(page: Page): Promise<string[]> {
   const emails = await page.evaluate(() => {
     const emailSet = new Set<string>();
-    
+
     const mailtoLinks = document.querySelectorAll('a[href^="mailto:"]');
     mailtoLinks.forEach(link => {
       const href = link.getAttribute('href');
@@ -137,7 +137,7 @@ export async function extractEmails(page: Page): Promise<string[]> {
     const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
     const allText = document.body.textContent || '';
     const matches = allText.match(emailRegex);
-    
+
     if (matches) {
       matches.forEach(email => {
         if (isValidEmail(email)) {
@@ -148,10 +148,10 @@ export async function extractEmails(page: Page): Promise<string[]> {
 
     function isValidEmail(email: string): boolean {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(email) && 
-             !email.includes('example.com') && 
-             !email.includes('test.com') &&
-             !email.includes('placeholder');
+      return emailRegex.test(email) &&
+        !email.includes('example.com') &&
+        !email.includes('test.com') &&
+        !email.includes('placeholder');
     }
 
     return Array.from(emailSet);
@@ -163,8 +163,8 @@ export async function extractEmails(page: Page): Promise<string[]> {
 export async function extractPhoneNumbers(page: Page): Promise<string[]> {
   const phoneNumbers = await page.evaluate(() => {
     const phoneSet = new Set<string>();
-    
-  
+
+
     const telLinks = document.querySelectorAll('a[href^="tel:"]');
     telLinks.forEach(link => {
       const href = link.getAttribute('href');
@@ -176,7 +176,7 @@ export async function extractPhoneNumbers(page: Page): Promise<string[]> {
       }
     });
 
-  
+
     const phoneIcons = document.querySelectorAll([
       'i[class*="phone"]',
       'i[class*="tel"]',
@@ -200,7 +200,7 @@ export async function extractPhoneNumbers(page: Page): Promise<string[]> {
       }
     });
 
-  
+
     const phonePatterns = [
       /\+\d{1,3}[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}/g,
       /\(\d{3}\)\s?\d{3}[-.\s]?\d{4}/g,
@@ -239,18 +239,18 @@ export async function extractPhoneNumbers(page: Page): Promise<string[]> {
 export async function extractCompanyName(page: Page): Promise<string[]> {
   const companyNames = await page.evaluate(() => {
     const nameSet = new Set<string>();
-    
-  
+
+
     const title = document.title;
     if (title) {
-    
+
       const cleanTitle = title.replace(/\s*[-|]\s*(Home|About|Contact|Welcome).*$/i, '');
       if (cleanTitle.length > 2 && cleanTitle.length < 100) {
         nameSet.add(cleanTitle.trim());
       }
     }
 
-  
+
     const metaTags = [
       'meta[property="og:site_name"]',
       'meta[name="application-name"]',
@@ -267,7 +267,7 @@ export async function extractCompanyName(page: Page): Promise<string[]> {
       }
     });
 
-  
+
     const headerSelectors = [
       'header h1',
       'header .logo',
@@ -288,7 +288,7 @@ export async function extractCompanyName(page: Page): Promise<string[]> {
       });
     });
 
-  
+
     const copyrightElements = document.querySelectorAll('*');
     copyrightElements.forEach(el => {
       const text = el.textContent?.trim();
@@ -303,7 +303,7 @@ export async function extractCompanyName(page: Page): Promise<string[]> {
       }
     });
 
-  
+
     const aboutPatterns = [
       /about\s+(.+?)(?:\s*[-|]|\s*$)/i,
       /welcome\s+to\s+(.+?)(?:\s*[-|]|\s*$)/i
@@ -333,14 +333,14 @@ export async function extractCompanyName(page: Page): Promise<string[]> {
 export async function extractCompanyTagline(page: Page): Promise<string[]> {
   const taglines = await page.evaluate(() => {
     const taglineSet = new Set<string>();
-    
-  
+
+
     const metaSelectors = [
       'meta[name="description"]',
       'meta[property="og:description"]',
       'meta[name="twitter:description"]'
     ];
-    
+
     metaSelectors.forEach(selector => {
       const meta = document.querySelector(selector);
       if (meta) {
@@ -351,7 +351,7 @@ export async function extractCompanyTagline(page: Page): Promise<string[]> {
       }
     });
 
-  
+
     const headerSelectors = [
       'header h2', 'header h3', 'header p',
       'header .tagline', 'header .slogan', 'header .subtitle',
@@ -369,7 +369,7 @@ export async function extractCompanyTagline(page: Page): Promise<string[]> {
       });
     });
 
-  
+
     const heroSelectors = [
       '.hero h2', '.hero h3', '.hero p',
       '.banner h2', '.banner h3', '.banner p',
@@ -387,7 +387,7 @@ export async function extractCompanyTagline(page: Page): Promise<string[]> {
       });
     });
 
-  
+
     const taglinePatterns = [
       /\b(?:your trusted|leading provider|we are|committed to|dedicated to|specializing in|experts in)\b.{10,70}/gi,
       /\b(?:innovative|professional|reliable|quality|excellence|solution)\b.{10,70}/gi
@@ -406,7 +406,7 @@ export async function extractCompanyTagline(page: Page): Promise<string[]> {
       }
     });
 
-  
+
     const taglineClassSelectors = [
       '.tagline', '.slogan', '.subtitle', '.motto',
       '[class*="tagline"]', '[class*="slogan"]', '[class*="subtitle"]'
@@ -428,7 +428,7 @@ export async function extractCompanyTagline(page: Page): Promise<string[]> {
 
   const genericPhrases = ['welcome to our website', 'home page', 'contact us', 'about us'];
   return taglines
-    .filter(tagline => !genericPhrases.some(phrase => 
+    .filter(tagline => !genericPhrases.some(phrase =>
       tagline.toLowerCase().includes(phrase)))
     .slice(0, 3);
 }
@@ -437,7 +437,7 @@ export async function extractCompanyDescription(page: Page): Promise<string[]> {
   const descriptions = await page.evaluate(() => {
     const descriptionSet = new Set<string>();
 
-  
+
     const aboutSelectors = [
       '[class*="about"] p',
       '[id*="about"] p',
@@ -455,7 +455,7 @@ export async function extractCompanyDescription(page: Page): Promise<string[]> {
       });
     });
 
-  
+
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       const content = metaDesc.getAttribute('content');
@@ -464,7 +464,7 @@ export async function extractCompanyDescription(page: Page): Promise<string[]> {
       }
     }
 
-  
+
     const jsonLdScripts = document.querySelectorAll('script[type="application/ld+json"]');
     jsonLdScripts.forEach(script => {
       try {
@@ -476,11 +476,11 @@ export async function extractCompanyDescription(page: Page): Promise<string[]> {
           descriptionSet.add(data.description);
         }
       } catch (e) {
-      
+
       }
     });
 
-  
+
     const descriptionPatterns = [
       /\b(?:we are|founded in|established in|our company|our mission)\b.{50,400}/gi,
       /\b(?:since \d{4}|for over \d+ years|leading provider|specializing in)\b.{50,400}/gi
@@ -499,7 +499,7 @@ export async function extractCompanyDescription(page: Page): Promise<string[]> {
       }
     });
 
-  
+
     const mainParagraphs = document.querySelectorAll('main p, .content p, .main-content p');
     mainParagraphs.forEach(p => {
       const text = p.textContent?.trim();
@@ -520,7 +520,7 @@ export async function extractProductsServices(page: Page): Promise<string[]> {
   const services = await page.evaluate(() => {
     const serviceSet = new Set<string>();
 
-  
+
     const navSelectors = [
       'nav ul li a', 'nav ol li a',
       '.navbar ul li a', '.navbar ol li a',
@@ -538,7 +538,6 @@ export async function extractProductsServices(page: Page): Promise<string[]> {
       });
     });
 
-  
     const serviceSelectors = [
       '[class*="service"] h2', '[class*="service"] h3',
       '[class*="product"] h2', '[class*="product"] h3',
@@ -665,7 +664,7 @@ export async function extractIndustryMarketSector(page: Page): Promise<string[]>
 
     // Sort by score and return top industries
     return Object.entries(industryScores)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .map(([industry]) => industry);
   });
 
@@ -698,7 +697,7 @@ export async function extractYearFounded(page: Page): Promise<number | null> {
     let match;
     while ((match = copyrightPattern.exec(allText)) !== null) {
       const year = parseInt(match[1]);
-      if (year >= 1900 && year <= currentYear - 2) { 
+      if (year >= 1900 && year <= currentYear - 2) {
         yearCandidates.push(year);
       }
     }
@@ -737,14 +736,14 @@ export async function extractYearFounded(page: Page): Promise<number | null> {
     });
 
     if (yearCandidates.length === 0) return null;
-    
+
     const yearCounts = yearCandidates.reduce((acc, year) => {
       acc[year] = (acc[year] || 0) + 1;
       return acc;
     }, {} as { [key: number]: number });
 
     return parseInt(Object.entries(yearCounts)
-      .sort(([,a], [,b]) => b - a)[0][0]);
+      .sort(([, a], [, b]) => b - a)[0][0]);
   });
 
   return foundedYear;
@@ -757,7 +756,7 @@ export async function extractOperationalStatus(page: Page) {
     let activeScore = 0;
     let inactiveScore = 0;
 
-  
+
     const activePatterns = [
       /\b(?:currently|now|today|this year|2024|2025)\b/gi,
       /\b(?:hiring|careers|job openings|apply now)\b/gi,
@@ -843,7 +842,6 @@ export async function extractOperationalStatus(page: Page) {
   return operationalInfo;
 }
 
-
 export async function extractAllCompanyInfo(page: Page): Promise<{
   addresses: string[];
   socialMedia: {
@@ -906,4 +904,127 @@ export async function extractAllCompanyInfo(page: Page): Promise<{
     yearFounded,
     operationalStatus
   };
+}
+
+export async function checkIfCaptchaPresent(page: Page) {
+  try {
+    const captchaSelectors = [
+      'iframe[src*="captcha"]',
+      'div[id*="g-recaptcha"]',
+      'div[class*="h-captcha"]',
+      '.cf-browser-verification', // Cloudflare's browser check
+      '#bot-detection-page',
+    ];
+
+    for (const selector of captchaSelectors) {
+      const element = await page.$(selector);
+      if (element) {
+        console.warn(`CAPTCHA/Anti-bot element found: ${selector}`);
+        return true;
+      }
+    }
+
+    // Check for common text content
+    const pageText = await page.evaluate(() => document.body.innerText);
+    if (pageText.includes('verify you\'re human') || pageText.includes('Please complete the security check')) {
+      console.warn('CAPTCHA/Anti-bot text found on page.');
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export async function extractContactLinks(page: Page) {
+  // Simple keywords to match
+  const keywords: string[] = [
+    'contact',
+    'support',
+    'help',
+    'feedback',
+    'about',
+    'reach',
+    'connect',
+    'touch'
+  ];
+
+  // Regex patterns for URLs
+  const urlPatterns: RegExp[] = [
+    /\/contact/i,
+    /\/support/i,
+    /\/help/i,
+    /\/feedback/i,
+    /\/about/i,
+    /contact-us/i,
+    /contactus/i,
+    /get-in-touch/i
+  ];
+
+  // Regex patterns for link text
+  const textPatterns: RegExp[] = [
+    /contact\s*us/i,
+    /get\s*in\s*touch/i,
+    /reach\s*out/i,
+    /talk\s*to\s*us/i,
+    /customer\s*support/i,
+    /help\s*center/i,
+    /feedback/i,
+    /support/i,
+    /contact/i
+  ];
+
+  return await page.evaluate((keywords: string[], urlPatterns: { source: string; flags: string }[], textPatterns: { source: string; flags: string }[]) => {
+    const links: {href: string, title: string, text: string}[] = [];
+    const allLinks = document.querySelectorAll('a[href]');
+
+    allLinks.forEach((link) => {
+      const href = link.getAttribute('href') || '';
+      const text = link.textContent?.trim().toLowerCase() || '';
+      const title = (link.getAttribute('title') || '').toLowerCase();
+
+      let isMatch = false;
+
+      // Check URL patterns
+      for (const pattern of urlPatterns) {
+        if (new RegExp(pattern.source, pattern.flags).test(href)) {
+          isMatch = true;
+          break;
+        }
+      }
+
+      // Check text patterns
+      if (!isMatch) {
+        for (const pattern of textPatterns) {
+          if (new RegExp(pattern.source, pattern.flags).test(text) ||
+            new RegExp(pattern.source, pattern.flags).test(title)) {
+            isMatch = true;
+            break;
+          }
+        }
+      }
+
+      // Check simple keywords
+      if (!isMatch) {
+        for (const keyword of keywords) {
+          if (text.includes(keyword) || href.toLowerCase().includes(keyword)) {
+            isMatch = true;
+            break;
+          }
+        }
+      }
+
+      if (isMatch) {
+        links.push({
+          href: href,
+          text: link.textContent?.trim() || '',
+          title: link.getAttribute('title') || ''
+        });
+      }
+    });
+
+    return links;
+  }, keywords, urlPatterns.map(p => ({ source: p.source, flags: p.flags })),
+    textPatterns.map(p => ({ source: p.source, flags: p.flags })));
 }
