@@ -45,7 +45,11 @@ export function handlePuppetierErrors(error: any): PuppeteerErrorResponse {
     } else if (error.message.includes('ERR_NO_SUPPORTED_PROXIES') || error.message.includes('ERR_PROXY_CONNECTION_FAILED')) {
       logger.error(`Issue with PROXY: ${error.message}`);
       return { err: "Issue with Proxy", err_code: 404, new_proxy: true, restart_browser: false };
-    } else {
+    } else if (error.message.includes('ERR_CERT_AUTHORITY_INVALID')) {
+      logger.error(`Invalid SSL Certificate: ${error.message}`);
+      return { err: "Invalid SSL Certificate", err_code: 404, new_proxy: false, restart_browser: false };
+    }
+    else {
       logger.error(`An unexpected error occurred: ${error.message}`);
       return { err: "Internal Server Error", err_code: 500, new_proxy: false, restart_browser: false };
     }
@@ -57,6 +61,7 @@ export function handlePuppetierErrors(error: any): PuppeteerErrorResponse {
 
 export async function loadThePageForExtraction(page: Page, url: string, retry_attempt = 0): Promise<PuppeteerErrorResponse & {page?: Page}> {
   try {
+    logger.info('Goto URL', url, `retry_attempt: ${retry_attempt}`);
     const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
     const status = response?.status();
     if (status == 404) {
@@ -85,7 +90,7 @@ export async function loadThePageForExtraction(page: Page, url: string, retry_at
   }
 }
 
-export async function safeNetworkIdle(page: Page, idle = 1000, total = 60000) {
+export async function safeNetworkIdle(page: Page, idle = 1000, total = 30000) {
   try {
     await page.waitForNetworkIdle({ idleTime: idle, timeout: total });
     return true;
@@ -111,6 +116,7 @@ export async function launchBrowser(proxy_no?: number) {
     '--no-zygote',
     '--single-process',
     '--disable-gpu',
+    '--ignore-certificate-errors'
   ]
   if (typeof proxy_no == 'number' && proxy_no < PROXIES.length) {
     args.push(`--proxy-server=${PROXIES[proxy_no]}`)
