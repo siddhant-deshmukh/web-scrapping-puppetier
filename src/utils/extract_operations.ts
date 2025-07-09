@@ -1,4 +1,5 @@
 import { Page } from "puppeteer";
+import logger from "../logging";
 
 
 export async function extractCompanyAddress(page: Page): Promise<string[]> {
@@ -919,7 +920,7 @@ export async function checkIfCaptchaPresent(page: Page) {
     for (const selector of captchaSelectors) {
       const element = await page.$(selector);
       if (element) {
-        console.warn(`CAPTCHA/Anti-bot element found: ${selector}`);
+        logger.warn(`CAPTCHA/Anti-bot element found: ${selector}`);
         return true;
       }
     }
@@ -927,13 +928,13 @@ export async function checkIfCaptchaPresent(page: Page) {
     // Check for common text content
     const pageText = await page.evaluate(() => document.body.innerText);
     if (pageText.includes('verify you\'re human') || pageText.includes('Please complete the security check')) {
-      console.warn('CAPTCHA/Anti-bot text found on page.');
+      logger.warn('CAPTCHA/Anti-bot text found on page.');
       return true;
     }
 
     return false;
   } catch (err) {
-    console.error(err);
+    logger.error(err);
   }
 }
 
@@ -941,10 +942,10 @@ export async function extractContactLinks(page: Page) {
   // Simple keywords to match
   const keywords: string[] = [
     'contact',
-    'support',
-    'help',
-    'feedback',
-    'about',
+    // 'support',
+    // 'help',
+    // 'feedback',
+    // 'about',
     'reach',
     'connect',
     'touch'
@@ -953,10 +954,10 @@ export async function extractContactLinks(page: Page) {
   // Regex patterns for URLs
   const urlPatterns: RegExp[] = [
     /\/contact/i,
-    /\/support/i,
-    /\/help/i,
-    /\/feedback/i,
-    /\/about/i,
+    // /\/support/i,
+    // /\/help/i,
+    // /\/feedback/i,
+    // /\/about/i,
     /contact-us/i,
     /contactus/i,
     /get-in-touch/i
@@ -970,8 +971,8 @@ export async function extractContactLinks(page: Page) {
     /talk\s*to\s*us/i,
     /customer\s*support/i,
     /help\s*center/i,
-    /feedback/i,
-    /support/i,
+    // /feedback/i,
+    // /support/i,
     /contact/i
   ];
 

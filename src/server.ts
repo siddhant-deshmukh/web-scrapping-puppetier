@@ -5,6 +5,8 @@ import express, { Request, Response } from 'express';
 import { parseUrlDetails } from './utils/validation';
 import { performGoogleSearch } from './utils/googleApi';
 import { processUrls } from './extract';
+import path from 'path';
+import { LoggerModes } from 'jet-logger';
 
 
 dotenv.config();
@@ -13,8 +15,13 @@ const PORT = process.env.PORT || 3000;
 
 const app = express();
 
+app.set('trust proxy', 1);
 app.use(express.json());
 app.use(cors());
+
+const logFilePath = path.join(__dirname, '../sampleProject.log');
+process.env.JET_LOGGER_MODE = LoggerModes.Custom; // Can also be Console, Custom, or Off
+process.env.JET_LOGGER_FILEPATH = logFilePath;
 
 
 app.post('/', async (req: Request, res: Response) => {

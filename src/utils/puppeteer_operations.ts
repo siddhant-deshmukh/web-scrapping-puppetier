@@ -2,6 +2,7 @@ import * as dotenv from "dotenv";
 import puppeteer, { Browser, Page } from "puppeteer";
 import { delay } from "./common";
 import { checkIfCaptchaPresent } from "./extract_operations";
+import logger from "../logging";
 
 dotenv.config()
 
@@ -11,7 +12,7 @@ const PROXY_USER_NAME = process.env.PROXY_USER_NAME;
 const PROXY_PASSWORD = process.env.PROXY_PASSWORD;
 
 if(PROXIES && PROXIES.length > 0 && ( !PROXY_USER_NAME || !PROXY_PASSWORD )) {
-  console.error('For PROXIES also add vairables PROXY_USER_NAME, PROXY_PASSWORD')
+  logger.error('For PROXIES also add vairables PROXY_USER_NAME, PROXY_PASSWORD')
   process.exit()
 }
 
@@ -24,31 +25,32 @@ export type PuppeteerErrorResponse = {
 export function handlePuppetierErrors(error: any): PuppeteerErrorResponse {
   try {
     if (error && error.err && typeof error.err_code == 'number') {
+      logger.error('Error code', error);
       if(error.err_code === 403 || error.err_code == 429) {
         return { err: "Issue with proxy", err_code: 404, new_proxy: true, restart_browser: false };
       }
       return { err: "Invalid Page URL", err_code: 404, new_proxy: false, restart_browser: false };
     } else if (error.name === 'TimeoutError') {
-      console.error('Page navigation or rendering timed out.');
+      logger.error('Page navigation or rendering timed out.');
       return { err: "Internal Server Error", err_code: 500, new_proxy: false, restart_browser: false };
     } else if (error.message.includes('ERR_NAME_NOT_RESOLVED') || error.message.includes('net::ERR_DNS_UNRESOLVED')) {
-      console.error('Page not found or invalid domain.');
+      logger.error('Page not found or invalid domain.');
       return { err: "Internal Server Error", err_code: 500, new_proxy: false, restart_browser: false };
     } else if (error.message.includes('captcha') || error.message.includes('bot policy')) {
-      console.error('Blocked by CAPTCHA or bot policy.');
+      logger.error('Blocked by CAPTCHA or bot policy.');
       return { err: "Internal Server Error", err_code: 500, new_proxy: false, restart_browser: false };
     } else if (error.message.includes('WebSocket closed: 1006') || error.message.includes('ECONNREFUSED')) {
-      console.error(`Browser Crash/Connection Lost: ${error.message}`);
+      logger.error(`Browser Crash/Connection Lost: ${error.message}`);
       return { err: "Internal Server Error", err_code: 500, new_proxy: false, restart_browser: true };
     } else if (error.message.includes('ERR_NO_SUPPORTED_PROXIES') || error.message.includes('ERR_PROXY_CONNECTION_FAILED')) {
-      console.error(`Issue with PROXY: ${error.message}`);
+      logger.error(`Issue with PROXY: ${error.message}`);
       return { err: "Issue with Proxy", err_code: 404, new_proxy: true, restart_browser: false };
     } else {
-      console.error(`An unexpected error occurred: ${error.message}`);
+      logger.error(`An unexpected error occurred: ${error.message}`);
       return { err: "Internal Server Error", err_code: 500, new_proxy: false, restart_browser: false };
     }
   } catch (err) {
-    console.error(`An unexpected error occurred: ${error.message}`);
+    logger.error(`An unexpected error occurred: ${error.message}`);
     return { err: "Internal Server Error", err_code: 500, new_proxy: false, restart_browser: false };
   }
 }
@@ -88,12 +90,12 @@ export async function safeNetworkIdle(page: Page, idle = 1000, total = 60000) {
     await page.waitForNetworkIdle({ idleTime: idle, timeout: total });
     return true;
   } catch (err) {
-    console.warn('networkIdle timeout, falling back → selector wait');
+    logger.warn('networkIdle timeout, falling back → selector wait');
     try {
       await page.waitForSelector('body', { timeout: 10000 });
       return false;
     } catch {
-      console.warn('networkIdle timeout, falling back → selector wait');
+      logger.warn('networkIdle timeout, falling back → selector wait');
       // throw err;
     }
   }
@@ -142,7 +144,7 @@ export async function createNewPage(browser: Browser, proxy_no?: number, retry_a
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36');
     return {page};
   } catch (err) {
-    console.error('New page creation failed', err)
+    logger.error('New page creation failed', err)
     if (retry_attempt < 3) {
       createNewPage(browser, proxy_no, retry_attempt + 1);
     }

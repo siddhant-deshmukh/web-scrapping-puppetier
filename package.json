@@ -14,9 +14,13 @@
     "cors": "^2.8.5",
     "dotenv": "^17.0.1",
     "express": "^5.1.0",
+    "express-winston": "^4.2.0",
+    "jet-logger": "^2.0.1",
     "puppeteer": "^24.11.2",
     "request": "^2.88.2",
-    "request-promise": "^4.2.6"
+    "request-promise": "^4.2.6",
+    "uuid": "^11.1.0",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@types/axios": "^0.14.4",
