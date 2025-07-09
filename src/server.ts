@@ -52,6 +52,8 @@ app.post('/', async (req: Request, res: Response) => {
       }
       urls = parseUrlDetails(googleSearchResults.map((ele)=> ele.link));
     }
+
+    //* Main Scrapping operation from the URLs
     if(urls) {
       const extracted_data = await processUrls(urls.map((ele)=> ele.url));
       res.status(200).json({ extracted_data })

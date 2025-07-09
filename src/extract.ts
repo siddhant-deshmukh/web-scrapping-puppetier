@@ -15,6 +15,11 @@ const BROWSER_CRASH_PROXY_RECOVERY_ATTEMPTS = 2
 const PROXY_STRING = process.env.PROXIES
 export const PROXIES = (typeof PROXY_STRING == 'string') ? PROXY_STRING.split(', ') : [];
 
+//****                                                                                  ************************* */
+//****                                                                                  ************************* */
+//****                  Main Scrapping Function Starting Point                           */
+//****                                                                                  ************************* */
+//****                                                                                  ************************* */
 export async function processUrls(given_urls: string[], prevUrlsInfo?: UrlsInfoRes, given_browser?: Browser | null, retry_attempt = 0, proxy_no: number | undefined = undefined): Promise<UrlsInfoRes | undefined> {
   let browser: Browser | null = null;
   let allUrlsInfo: UrlsInfoRes = {}
